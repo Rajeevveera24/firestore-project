@@ -18,14 +18,16 @@ function App() {
     >
       <div
         style={{
-          width: "80vw",
-          height: "80vh",
+          width: "85vw",
+          height: "85h",
           maxWidth: "none",
           minWidth: "0",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           border: "2px solid #000", // Added border
+          overflow: "hidden", // Added to ensure panel stays inside
+          position: "relative", // Added to contain absolutely positioned elements
         }}
       >
         <Panel />

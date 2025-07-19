@@ -36,8 +36,8 @@ const ImageDisplay = ({ imageUrl }) => {
         src={imageUrl}
         alt="Resizable Image"
         style={{
-          maxWidth: isZoomed ? "none" : "100%",
-          maxHeight: isZoomed ? "none" : "100%",
+          width: "100%",
+          height: "100%",
           objectFit: "contain",
           transform: `scale(${scale})`,
           transition: "transform 0.2s ease-out",
@@ -48,7 +48,7 @@ const ImageDisplay = ({ imageUrl }) => {
 };
 
 const ResizableBox = ({ imageUrl, title }) => {
-  const [dimensions, setDimensions] = useState({ width: 200, height: 200 });
+  const [dimensions, setDimensions] = useState({ width: 250, height: 250 });
   const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = (e) => {
@@ -74,20 +74,24 @@ const ResizableBox = ({ imageUrl, title }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        border: "2px solid #333",
-        padding: "10px",
-        borderRadius: "5px",
+        justifyContent: "center",
+        border: "1px solid #333",
+        padding: "5px",
+        borderRadius: "3px",
+        flex: 1,
       }}
     >
-      <div style={{ marginBottom: "5px", fontSize: "12px" }}>{title}</div>
       <div
         style={{
           width: dimensions.width,
           height: dimensions.height,
-          border: "2px solid #ccc",
-          margin: "10px",
+          border: "1px solid #ccc",
+          margin: "2px",
           position: "relative",
           overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -95,20 +99,35 @@ const ResizableBox = ({ imageUrl, title }) => {
       >
         <div
           style={{
-            border: "2px solid #666",
-            width: "100%",
-            height: "100%",
+            width: "40%",
+            height: "40%",
+            minWidth: "100px",
+            minHeight: "100px",
+            display: "flex",
+            justifyContent: "center",
           }}
         >
           <ImageDisplay imageUrl={imageUrl} />
         </div>
         <div
           style={{
+            flex: 1,
+            padding: "10px",
+            textAlign: "left",
+          }}
+        >
+          <p style={{ fontWeight: "bold", textAlign: "center" }}>{title}</p>
+          <p>Current Bid: $0</p>
+          <p>Time Left: 2h 30m</p>
+          <p>Description: Sample item description goes here...</p>
+        </div>
+        <div
+          style={{
             position: "absolute",
             bottom: 0,
             right: 0,
-            width: "20px",
-            height: "20px",
+            width: "15px",
+            height: "15px",
             cursor: "se-resize",
           }}
         />
@@ -126,9 +145,7 @@ const loadImages = () => {
   const images = {};
 
   imageContext.keys().forEach((key) => {
-    // Remove the './' from the beginning and file extension from the end
     const imageName = key.replace(/^\.\//, "").replace(/\.[^/.]+$/, "");
-    // Create the full path
     const imagePath = `/images${key.replace(".", "")}`;
     images[imageName] = imagePath;
   });
@@ -142,14 +159,40 @@ const Panel = () => {
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        width: "100%",
+        height: "100%",
+        gap: "10px",
+        padding: "10px",
+      }}
     >
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          gap: "10px",
+          flex: 1,
+          minHeight: "45%",
+        }}
+      >
         <ResizableBox imageUrl={imageUrls[0]} title={Object.keys(images)[0]} />
         <ResizableBox imageUrl={imageUrls[1]} title={Object.keys(images)[1]} />
         <ResizableBox imageUrl={imageUrls[2]} title={Object.keys(images)[2]} />
       </div>
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          gap: "10px",
+          flex: 1,
+          minHeight: "45%",
+        }}
+      >
         <ResizableBox imageUrl={imageUrls[3]} title={Object.keys(images)[3]} />
         <ResizableBox imageUrl={imageUrls[4]} title={Object.keys(images)[4]} />
         <ResizableBox imageUrl={imageUrls[5]} title={Object.keys(images)[5]} />
