@@ -1,17 +1,17 @@
 // src/App.js
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { initializeFirebase } from "./firebase";
 import Panel from "./panel";
-
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState(null);
 
   useEffect(() => {
-    initializeFirebase().then(({ auth }) => {
+    initializeFirebase().then(({ auth, functions }) => {
       setAuth(auth);
       auth.onAuthStateChanged((user) => {
         setUser(user);
@@ -24,7 +24,31 @@ function App() {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      // First sign in with popup
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // After successful sign in, the user is authenticated
+      // Now when we call the Cloud Function, Firebase automatically
+      // adds the auth context with the user's credentials
+      const functions = getFunctions();
+      const saveUserInfo = httpsCallable(functions, "saveUserInfo");
+
+      // Call the function with the user data
+      console.log("User data:", {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        uid: user.uid,
+        emailVerified: user.emailVerified,
+        metadata: user.metadata,
+        providerData: user.providerData,
+      });
+      await saveUserInfo({
+        email: user.email,
+        name: user.displayName,
+        age: 18, // Default age value, you may want to collect this from the user
+      });
     } catch (error) {
       console.error("Error signing in:", error);
     }
