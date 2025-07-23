@@ -56,7 +56,7 @@ const Cart = ({ app, user }) => {
           alignItems: "center",
         }}
       >
-        <p>Loading cart items...</p>
+        <p>Loading your items...</p>
       </div>
     );
   }
@@ -87,36 +87,48 @@ const Cart = ({ app, user }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        overflowY: "auto", // Make the cart scrollable
       }}
     >
-      <h2>Shopping Cart</h2>
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
-        <div style={{ width: "100%", maxWidth: "800px" }}>
-          {cartItems.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                padding: "15px",
-                marginBottom: "10px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <h3>{item.name}</h3>
-                <p>Final Price: ${item.final_price}</p>
-                <p>Document ID: {item.id}</p>
+      <h2
+        style={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "white",
+          width: "100%",
+          textAlign: "center",
+          padding: "10px 0",
+        }}
+      >
+        Your Items
+      </h2>
+      <div style={{ width: "100%", overflowY: "auto", flex: 1 }}>
+        {cartItems.length === 0 ? (
+          <p>You have not bought any items</p>
+        ) : (
+          <div style={{ width: "100%", maxWidth: "800px", margin: "0 auto" }}>
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  padding: "15px",
+                  marginBottom: "10px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <h3>{item.name}</h3>
+                  <p>Final Price: ${item.final_price}</p>
+                  <p>Document ID: {item.id}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

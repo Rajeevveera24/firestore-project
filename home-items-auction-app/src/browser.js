@@ -333,7 +333,10 @@ const Browse = ({ app, user }) => {
               ) : (
                 <div>
                   {item.buyer
-                    ? `Purchased by: ${userEmails[item.buyer] || "Unknown"}`
+                    ? // ? `Purchased by: ${
+                      //     userEmails[item.buyer_email] || "Unknown"
+                      //   }`
+                      "Purchased already"
                     : "Bidding not open"}
                 </div>
               )}

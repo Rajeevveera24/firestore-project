@@ -154,6 +154,7 @@ const ItemDetails = ({ title, app, user }) => {
             updateDoc(currentDocRef, {
               is_bidding_open: false,
               buyer: user.uid,
+              buyer_email: user.email,
               time_left: 0,
               final_price: itemData.current_bid,
             });
