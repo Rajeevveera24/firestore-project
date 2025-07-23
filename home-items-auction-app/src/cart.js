@@ -21,7 +21,6 @@ const Cart = ({ app, user }) => {
 
         for (const collectionName of collections) {
           const subcollectionRef = collectionGroup(db, collectionName);
-          //   console.log(user.uid);
           const q = query(subcollectionRef, where("buyer", "==", user.uid));
 
           const querySnapshot = await getDocs(q);
@@ -111,6 +110,7 @@ const Cart = ({ app, user }) => {
               <div>
                 <h3>{item.name}</h3>
                 <p>Final Price: ${item.final_price}</p>
+                <p>Document ID: {item.id}</p>
               </div>
             </div>
           ))}
