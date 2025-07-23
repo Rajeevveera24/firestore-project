@@ -67,7 +67,7 @@ const ResizableBox = ({ imageUrl, title, app, user }) => {
       <div
         style={{
           width: "250px",
-          height: "300px",
+          height: "400px", // Increased height from 300px to 400px
           border: "1px solid #ccc",
           margin: "1px",
           position: "relative",
@@ -103,6 +103,7 @@ const ResizableBox = ({ imageUrl, title, app, user }) => {
             flex: 1,
             padding: "10px",
             textAlign: "left",
+            height: "60%", // Added explicit height for the item details section
           }}
         >
           <ItemDetails title={title} app={app} user={user} />

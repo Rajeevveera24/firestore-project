@@ -87,6 +87,7 @@ const Cart = ({ app, user }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        overflowY: "auto", // Make the cart scrollable
       }}
     >
       <h2>Shopping Cart</h2>

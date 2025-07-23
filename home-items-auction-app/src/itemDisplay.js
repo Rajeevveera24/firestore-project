@@ -7,7 +7,9 @@ import {
   getDocs,
   getFirestore,
   onSnapshot,
+  query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 const ItemDetails = ({ title, app, user }) => {
@@ -19,6 +21,7 @@ const ItemDetails = ({ title, app, user }) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [userRef, setUserRef] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
+  const [unsubscribeSnapshot, setUnsubscribeSnapshot] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -34,58 +37,86 @@ const ItemDetails = ({ title, app, user }) => {
     }
   }, [app, user]);
 
-  useEffect(() => {
-    const db = getFirestore(app);
-    const fetchData = async () => {
-      try {
-        const subcollections = ["budget", "luxury", "modern"];
-        const unsubscribers = [];
+  const fetchNextAvailableItem = async () => {
+    if (!title) return;
 
-        for (const subcollection of subcollections) {
-          const subcollectionRef = collection(
-            db,
-            "items",
-            title,
-            subcollection
-          );
-          const querySnapshot = await getDocs(subcollectionRef);
+    try {
+      const db = getFirestore(app);
+      const subcollections = ["budget", "luxury", "modern"];
 
-          querySnapshot.forEach((doc) => {
-            const unsubscribe = onSnapshot(doc.ref, (snapshot) => {
-              const data = snapshot.data();
-              if (data && data.is_bidding_open) {
-                // Check if this is an update and we had previously bid
-                if (
-                  itemData.current_bidder === user.uid &&
-                  data.current_bidder !== user.uid
-                ) {
-                  setNotification("Another user has placed a new bid!");
-                  setHasBid(false);
-                  setTimeout(() => setNotification(null), 5000);
-                }
-                setItemData(data);
-                setCurrentDocRef(doc.ref);
-                if (data.time_left) {
-                  setTimeLeft(data.time_left);
-                }
+      // Clean up existing listener if any
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+
+      // Reset bid state for new item
+      setHasBid(false);
+      setTimeLeft(30);
+
+      for (const subcollection of subcollections) {
+        const subcollectionRef = collection(db, "items", title, subcollection);
+        const q = query(subcollectionRef, where("is_bidding_open", "==", true));
+        const querySnapshot = await getDocs(q);
+
+        // Get first available item
+        const availableDoc = querySnapshot.docs[0];
+        if (availableDoc) {
+          // Set up real-time listener
+          const unsubscribe = onSnapshot(availableDoc.ref, (snapshot) => {
+            const data = snapshot.data();
+            if (data) {
+              if (!data.is_bidding_open) {
+                // Item was just purchased
+                setNotification(
+                  "Item has been purchased! Finding next available item..."
+                );
+                setTimeout(() => {
+                  setNotification(null);
+                  fetchNextAvailableItem(); // Fetch next item
+                }, 3000);
+                return;
               }
-            });
-            unsubscribers.push(unsubscribe);
-          });
-        }
 
-        return () => {
-          unsubscribers.forEach((unsubscribe) => unsubscribe());
-        };
-      } catch (err) {
-        setError(err.message);
+              // Check if outbid
+              if (
+                itemData.current_bidder === user.uid &&
+                data.current_bidder !== user.uid
+              ) {
+                setNotification("Another user has placed a new bid!");
+                setHasBid(false);
+                setTimeout(() => setNotification(null), 5000);
+              }
+
+              setItemData(data);
+              setCurrentDocRef(availableDoc.ref);
+              if (data.time_left) {
+                setTimeLeft(data.time_left);
+              }
+            }
+          });
+
+          setUnsubscribeSnapshot(() => unsubscribe);
+          return; // Exit after finding first available item
+        }
+      }
+
+      // If we get here, no items were found
+      setItemData({});
+      setCurrentDocRef(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchNextAvailableItem();
+
+    return () => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
       }
     };
-
-    if (title) {
-      fetchData();
-    }
-  }, [title, app, user.uid, itemData.current_bidder]);
+  }, [title, app]);
 
   // Timer effect for bid owner
   useEffect(() => {
