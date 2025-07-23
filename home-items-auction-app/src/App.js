@@ -15,8 +15,9 @@ function App() {
   const [auth, setAuth] = useState(null);
   const [app, setApp] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("auction");
+  const [currentPage, setCurrentPage] = useState("welcome"); // Changed default to welcome
   const [budget, setBudget] = useState(7000);
+  const [joinedAuction, setJoinedAuction] = useState(false);
 
   useEffect(() => {
     initializeFirebase().then(({ auth, app }) => {
@@ -73,9 +74,16 @@ function App() {
       await signOut(auth);
       setUser(null);
       setIsSidebarOpen(false);
+      setJoinedAuction(false);
+      setCurrentPage("welcome");
     } catch (error) {
       console.error("Error signing out:", error);
     }
+  };
+
+  const handleJoinAuction = () => {
+    setJoinedAuction(true);
+    setCurrentPage("auction");
   };
 
   if (loading) {
@@ -150,19 +158,49 @@ function App() {
       >
         {user ? (
           <>
-            {currentPage === "auction" ? (
-              <Panel
-                app={app}
-                user={user}
-                // budget={budget}
-                // onBudgetUpdate={handleBudgetUpdate}
-              />
-            ) : currentPage === "cart" ? (
-              <Cart app={app} user={user} />
-            ) : currentPage === "browse" ? (
-              <Cart app={app} user={user} />
-            ) : null}
-            <BudgetDisplay app={app} user={user} />
+            {!joinedAuction ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "20px",
+                }}
+              >
+                <h2>Welcome to the Auction</h2>
+                <button
+                  onClick={handleJoinAuction}
+                  style={{
+                    padding: "15px 30px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.target.style.transform = "scale(1.05)")
+                  }
+                  onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                  Join Live Auction
+                </button>
+              </div>
+            ) : (
+              <>
+                {currentPage === "auction" ? (
+                  <Panel app={app} user={user} />
+                ) : currentPage === "cart" ? (
+                  <Cart app={app} user={user} />
+                ) : currentPage === "browse" ? (
+                  <Cart app={app} user={user} />
+                ) : null}
+                <BudgetDisplay app={app} user={user} />
+              </>
+            )}
           </>
         ) : (
           <div
