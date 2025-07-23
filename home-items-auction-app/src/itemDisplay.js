@@ -5,145 +5,16 @@ import {
   getDocs,
   getFirestore,
   onSnapshot,
+  updateDoc,
 } from "firebase/firestore";
-
-// const ItemDetails = ({ title }) => {
-//   const [itemData, setItemData] = useState({});
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [showBidButtons, setShowBidButtons] = useState(true);
-//   const [isBidding, setIsBidding] = useState(false);
-
-//   useEffect(() => {
-//     let unsubscribe = null;
-
-//     const setupItemListener = async () => {
-//       try {
-//         const itemRef = db.collection("items").doc(title);
-//         // Log all collections
-//         const collections = await itemRef.listCollections();
-//         collections.forEach((collection) => {
-//           console.log("Collection:", collection.id);
-//         });
-//         unsubscribe = itemRef.onSnapshot(
-//           (doc) => {
-//             if (doc.exists) {
-//               const data = doc.data();
-//               if (data.status === "available" || isBidding) {
-//                 setItemData(data);
-//                 setShowBidButtons(data.status === "available");
-//                 setLoading(false);
-//               } else {
-//                 // Item is not available and user isn't bidding, reset state
-//                 setItemData({});
-//                 setShowBidButtons(false);
-//                 setLoading(true);
-//               }
-//             } else {
-//               setError("Item not found");
-//               setLoading(false);
-//             }
-//           },
-//           (err) => {
-//             console.error("Error watching document:", err);
-//             setError(err.message);
-//             setLoading(false);
-//           }
-//         );
-//       } catch (err) {
-//         console.error("Error setting up listener:", err);
-//         setError(err.message);
-//         setLoading(false);
-//       }
-//     };
-
-//     setupItemListener();
-
-//     return () => {
-//       if (unsubscribe) {
-//         unsubscribe();
-//       }
-//     };
-//   }, [title, isBidding]);
-
-//   const handleBid = async () => {
-//     try {
-//       const itemRef = db.collection("items").doc(title);
-//       await itemRef.update({
-//         currentBid: (itemData.currentBid || 0) + itemData.bidIncrement,
-//         lastBidder: "", // Assuming user object is available
-//       });
-//       setIsBidding(true);
-//       setShowBidButtons(false);
-//     } catch (err) {
-//       console.error("Error placing bid:", err);
-//       setError(err.message);
-//     }
-//   };
-
-//   const handlePass = () => {
-//     setShowBidButtons(false);
-//     setItemData({});
-//     setLoading(true);
-//   };
-
-//   if (loading) {
-//     return <div>Waiting for available items...</div>;
-//   }
-
-//   if (error) {
-//     return <div>Error: {error}</div>;
-//   }
-
-//   if (!itemData.currentBid && !showBidButtons) {
-//     return <div>Waiting for next item...</div>;
-//   }
-
-//   return (
-//     <div>
-//       <p style={{ fontWeight: "bold", textAlign: "center" }}>{title}</p>
-//       <p>Current Bid: ${itemData.currentBid || 0}</p>
-//       <p>Time Left: {itemData.timeLeft || "N/A"}</p>
-//       <p>Description: {itemData.description || "No description available"}</p>
-
-//       {showBidButtons && (
-//         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-//           <button
-//             onClick={handleBid}
-//             style={{
-//               padding: "8px 16px",
-//               backgroundColor: "#4CAF50",
-//               color: "white",
-//               border: "none",
-//               borderRadius: "4px",
-//               cursor: "pointer",
-//             }}
-//           >
-//             Bid (${(itemData.currentBid || 0) + (itemData.bidIncrement || 5)})
-//           </button>
-//           <button
-//             onClick={handlePass}
-//             style={{
-//               padding: "8px 16px",
-//               backgroundColor: "#f44336",
-//               color: "white",
-//               border: "none",
-//               borderRadius: "4px",
-//               cursor: "pointer",
-//             }}
-//           >
-//             Pass
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
 
 const ItemDetails = ({ title, app, user }) => {
   const [itemData, setItemData] = useState({});
   const [error, setError] = useState(null);
-  //   const [collections, setCollections] = useState([]);
+  const [hasBid, setHasBid] = useState(false);
+  const [currentDocRef, setCurrentDocRef] = useState(null);
+  const [notification, setNotification] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   useEffect(() => {
     const db = getFirestore(app);
@@ -165,15 +36,26 @@ const ItemDetails = ({ title, app, user }) => {
             const unsubscribe = onSnapshot(doc.ref, (snapshot) => {
               const data = snapshot.data();
               if (data && data.is_bidding_open) {
-                // Trigger callback when is_bidding_open is set
+                // Check if this is an update and we had previously bid
+                if (
+                  itemData.current_bidder === user.uid &&
+                  data.current_bidder !== user.uid
+                ) {
+                  setNotification("Another user has placed a new bid!");
+                  setHasBid(false);
+                  setTimeout(() => setNotification(null), 5000);
+                }
                 setItemData(data);
+                setCurrentDocRef(doc.ref);
+                if (data.time_left) {
+                  setTimeLeft(data.time_left);
+                }
               }
             });
             unsubscribers.push(unsubscribe);
           });
         }
 
-        // Cleanup function to unsubscribe all listeners
         return () => {
           unsubscribers.forEach((unsubscribe) => unsubscribe());
         };
@@ -185,7 +67,65 @@ const ItemDetails = ({ title, app, user }) => {
     if (title) {
       fetchData();
     }
-  }, [title, app]);
+  }, [title, app, user.uid, itemData.current_bidder]);
+
+  // Timer effect for bid owner
+  useEffect(() => {
+    let timer;
+    if (itemData.current_bidder === user.uid && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          const newTime = prev - 1;
+          // Update other users every 5 seconds
+          if (newTime % 5 === 0 && currentDocRef) {
+            updateDoc(currentDocRef, {
+              time_left: newTime,
+            });
+          }
+          // When timer hits 0, close bidding and set buyer
+          if (newTime === 0 && currentDocRef) {
+            updateDoc(currentDocRef, {
+              is_bidding_open: false,
+              buyer: itemData.current_bidder,
+              time_left: 0,
+              final_price: itemData.current_bid,
+            });
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [itemData.current_bidder, user.uid, currentDocRef, itemData.current_bid]);
+
+  const handleBid = async () => {
+    if (!currentDocRef) return;
+
+    const newBid = (itemData.current_bid || itemData.price) + 25;
+
+    try {
+      await updateDoc(currentDocRef, {
+        current_bid: newBid,
+        current_bidder: user.uid,
+        bidder_email: user.email,
+        time_left: 30,
+        last_bid_timestamp: new Date().toISOString(),
+      });
+
+      setTimeLeft(30);
+      setHasBid(true);
+    } catch (err) {
+      setError("Failed to place bid: " + err.message);
+    }
+  };
+
+  const handlePass = () => {
+    // Just mark as passed for this user
+    setHasBid(true);
+  };
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -193,6 +133,22 @@ const ItemDetails = ({ title, app, user }) => {
 
   return (
     <div>
+      {notification && (
+        <div
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            padding: "10px",
+            borderRadius: "5px",
+            zIndex: 1000,
+          }}
+        >
+          {notification}
+        </div>
+      )}
       <p
         style={{ fontWeight: "bold", textAlign: "center", fontSize: "0.9rem" }}
       >
@@ -205,11 +161,54 @@ const ItemDetails = ({ title, app, user }) => {
             Current Bid: ${itemData.current_bid || " - "}
           </p>
           <p style={{ fontSize: "0.7rem" }}>
-            Current Bidder: {itemData.bidder || " - "}
+            Current Bidder: {itemData.bidder_email || " - "}
           </p>
-          <p style={{ fontSize: "0.7rem" }}>
-            Time Left: {itemData.time_left || " - "}
-          </p>
+          <p style={{ fontSize: "0.7rem" }}>Time Left: {timeLeft} seconds</p>
+
+          {!hasBid && itemData.is_bidding_open && (
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "center",
+                marginTop: "10px",
+              }}
+            >
+              <button
+                onClick={handleBid}
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Bid (+$25)
+              </button>
+              <button
+                onClick={handlePass}
+                disabled={itemData.current_bidder === user.uid}
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor:
+                    itemData.current_bidder === user.uid ? "#ccc" : "#f44336",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor:
+                    itemData.current_bidder === user.uid
+                      ? "not-allowed"
+                      : "pointer",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Pass
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div>
