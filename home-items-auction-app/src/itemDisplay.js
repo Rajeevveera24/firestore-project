@@ -140,7 +140,7 @@ import {
 //   );
 // };
 
-const ItemDetails = ({ title, app }) => {
+const ItemDetails = ({ title, app, user }) => {
   const [itemData, setItemData] = useState({});
   const [error, setError] = useState(null);
   //   const [collections, setCollections] = useState([]);

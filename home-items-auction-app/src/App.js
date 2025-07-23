@@ -137,7 +137,7 @@ function App() {
         }}
       >
         {user ? (
-          <Panel />
+          <Panel app={app} user={user} />
         ) : (
           <div
             style={{

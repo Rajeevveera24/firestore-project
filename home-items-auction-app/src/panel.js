@@ -49,7 +49,7 @@ const ImageDisplay = ({ imageUrl }) => {
   );
 };
 
-const ResizableBox = ({ imageUrl, title, app }) => {
+const ResizableBox = ({ imageUrl, title, app, user }) => {
   return (
     <div
       style={{
@@ -105,7 +105,7 @@ const ResizableBox = ({ imageUrl, title, app }) => {
             textAlign: "left",
           }}
         >
-          <ItemDetails title={title} app={app} />
+          <ItemDetails title={title} app={app} user={user} />
           {/* {title === "bedframes" ? (
             <ItemDetails title={title} app={app} />
           ) : (
@@ -139,7 +139,7 @@ const loadImages = () => {
   return images;
 };
 
-const Panel = ({ app }) => {
+const Panel = ({ app, user }) => {
   const images = loadImages();
   const imageUrls = Object.values(images);
 
@@ -169,11 +169,13 @@ const Panel = ({ app }) => {
           imageUrl={imageUrls[0]}
           title={Object.keys(images)[0]}
           app={app}
+          user={user}
         />
         <ResizableBox
           imageUrl={imageUrls[1]}
           title={Object.keys(images)[1]}
           app={app}
+          user={user}
         />
       </div>
       <div
@@ -190,11 +192,13 @@ const Panel = ({ app }) => {
           imageUrl={imageUrls[2]}
           title={Object.keys(images)[2]}
           app={app}
+          user={user}
         />
         <ResizableBox
           imageUrl={imageUrls[3]}
           title={Object.keys(images)[3]}
           app={app}
+          user={user}
         />
       </div>
     </div>
