@@ -3,11 +3,11 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useEffect, useState } from "react";
 import "./App.css";
+import BudgetDisplay from "./bugdet_display";
+import Cart from "./cart"; // You'll need to create this component
 import { initializeFirebase } from "./firebase";
 import Panel from "./panel";
 import Sidebar from "./sidebar";
-
-import BudgetDisplay from "./bugdet_display";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -15,7 +15,7 @@ function App() {
   const [auth, setAuth] = useState(null);
   const [app, setApp] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("Auction");
+  const [currentPage, setCurrentPage] = useState("auction");
   const [budget, setBudget] = useState(7000);
 
   useEffect(() => {
@@ -150,12 +150,18 @@ function App() {
       >
         {user ? (
           <>
-            <Panel
-              app={app}
-              user={user}
-              // budget={budget}
-              // onBudgetUpdate={handleBudgetUpdate}
-            />
+            {currentPage === "auction" ? (
+              <Panel
+                app={app}
+                user={user}
+                // budget={budget}
+                // onBudgetUpdate={handleBudgetUpdate}
+              />
+            ) : currentPage === "cart" ? (
+              <Cart app={app} user={user} />
+            ) : currentPage === "browse" ? (
+              <Cart app={app} user={user} />
+            ) : null}
             <BudgetDisplay app={app} user={user} />
           </>
         ) : (

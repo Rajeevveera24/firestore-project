@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   getFirestore,
   onSnapshot,
@@ -15,6 +17,22 @@ const ItemDetails = ({ title, app, user }) => {
   const [currentDocRef, setCurrentDocRef] = useState(null);
   const [notification, setNotification] = useState(null);
   const [timeLeft, setTimeLeft] = useState(30);
+  const [userRef, setUserRef] = useState(null);
+  const [userDoc, setUserDoc] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      const db = getFirestore(app);
+      const ref = doc(db, "users", user.uid);
+      setUserRef(ref);
+
+      getDoc(ref).then((docSnap) => {
+        if (docSnap.exists()) {
+          setUserDoc(docSnap);
+        }
+      });
+    }
+  }, [app, user]);
 
   useEffect(() => {
     const db = getFirestore(app);
@@ -83,10 +101,15 @@ const ItemDetails = ({ title, app, user }) => {
             });
           }
           // When timer hits 0, close bidding and set buyer
-          if (newTime === 0 && currentDocRef) {
+          if (newTime === 0 && currentDocRef && userDoc) {
+            const userData = userDoc.data();
+            const currentBudget = userData.budget || 0;
+            updateDoc(userRef, {
+              budget: currentBudget - itemData.current_bid,
+            });
             updateDoc(currentDocRef, {
               is_bidding_open: false,
-              buyer: itemData.current_bidder,
+              buyer: user.uid,
               time_left: 0,
               final_price: itemData.current_bid,
             });
@@ -99,7 +122,14 @@ const ItemDetails = ({ title, app, user }) => {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [itemData.current_bidder, user.uid, currentDocRef, itemData.current_bid]);
+  }, [
+    itemData.current_bidder,
+    user.uid,
+    currentDocRef,
+    itemData.current_bid,
+    userRef,
+    userDoc,
+  ]);
 
   const handleBid = async () => {
     if (!currentDocRef) return;

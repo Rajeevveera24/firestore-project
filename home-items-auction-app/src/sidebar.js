@@ -14,6 +14,11 @@ const Sidebar = ({
     { id: "browse", label: "Browse", icon: "🔍" },
   ];
 
+  const handlePageChange = (pageId) => {
+    onPageChange(pageId);
+    onToggle(); // Close sidebar after selection
+  };
+
   return (
     <>
       <button
@@ -53,7 +58,7 @@ const Sidebar = ({
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onPageChange(item.id)}
+            onClick={() => handlePageChange(item.id)}
             style={{
               padding: "15px 25px",
               fontSize: "16px",
