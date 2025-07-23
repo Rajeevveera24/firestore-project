@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { initializeFirebase } from "./firebase";
 import Panel from "./panel";
+import Sidebar from "./sidebar";
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState(null);
   const [app, setApp] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState("home");
 
   useEffect(() => {
     initializeFirebase().then(({ auth, app }) => {
@@ -61,6 +65,7 @@ function App() {
     try {
       await signOut(auth);
       setUser(null);
+      setIsSidebarOpen(false);
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -69,7 +74,6 @@ function App() {
   if (loading) {
     return <div>Loading...</div>;
   }
-
   return (
     <div
       className="App"
@@ -84,14 +88,27 @@ function App() {
         padding: "0",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-        }}
-      >
-        {user ? (
+      {user && (
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onPageChange={setCurrentPage}
+          currentPage={currentPage}
+          onSignOut={handleSignOut}
+          showSignOut={false}
+        />
+      )}
+
+      {user && (
+        <div
+          style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            display: "flex",
+            gap: "10px",
+          }}
+        >
           <button
             onClick={handleSignOut}
             style={{
@@ -105,35 +122,23 @@ function App() {
           >
             Sign Out
           </button>
-        ) : (
-          <button
-            onClick={handleSignIn}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#4285f4",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Sign in with Google
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div
         style={{
-          width: "85vw",
+          width: isSidebarOpen ? "calc(85vw - 250px)" : "85vw", // Adjust width based on sidebar
+          marginLeft: isSidebarOpen ? "250px" : "0", // Add margin when sidebar is open
           height: "85vh",
           maxWidth: "none",
           minWidth: "0",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          border: "2px solid #000",
+          // border: "2px solid #000",
           overflow: "hidden",
           position: "relative",
+          transition: "all 0.3s ease-in-out", // Smooth transition
         }}
       >
         {user ? (
@@ -141,12 +146,35 @@ function App() {
         ) : (
           <div
             style={{
-              textAlign: "center",
-              color: "#666",
-              fontSize: "1.2rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
             }}
           >
-            Please sign in to view auction items
+            <div
+              style={{
+                textAlign: "center",
+                color: "#666",
+                fontSize: "1.2rem",
+              }}
+            >
+              Please sign in to view auction items
+            </div>
+            <button
+              onClick={handleSignIn}
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#4285f4",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "1.1rem",
+              }}
+            >
+              Sign in with Google
+            </button>
           </div>
         )}
       </div>
