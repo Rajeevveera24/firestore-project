@@ -139,7 +139,7 @@ const ItemDetails = ({ title, app, user }) => {
         setTimeLeft((prev) => {
           const newTime = prev - 1;
           // Update other users every 5 seconds
-          if (newTime % 4 === 0 && currentDocRef) {
+          if (currentDocRef) {
             updateDoc(currentDocRef, {
               time_left: newTime,
             });
