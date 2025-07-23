@@ -18,10 +18,11 @@ const ItemDetails = ({ title, app, user }) => {
   const [hasBid, setHasBid] = useState(false);
   const [currentDocRef, setCurrentDocRef] = useState(null);
   const [notification, setNotification] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(20);
   const [userRef, setUserRef] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
   const [unsubscribeSnapshot, setUnsubscribeSnapshot] = useState(null);
+  const [passedItems, setPassedItems] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -37,7 +38,7 @@ const ItemDetails = ({ title, app, user }) => {
     }
   }, [app, user]);
 
-  const fetchNextAvailableItem = async () => {
+  const fetchNextAvailableItem = async (skipItemIds = []) => {
     if (!title) return;
 
     try {
@@ -51,15 +52,17 @@ const ItemDetails = ({ title, app, user }) => {
 
       // Reset bid state for new item
       setHasBid(false);
-      setTimeLeft(30);
+      setTimeLeft(20);
 
       for (const subcollection of subcollections) {
         const subcollectionRef = collection(db, "items", title, subcollection);
         const q = query(subcollectionRef, where("is_bidding_open", "==", true));
         const querySnapshot = await getDocs(q);
 
-        // Get first available item
-        const availableDoc = querySnapshot.docs[0];
+        // Get first available item that hasn't been passed
+        const availableDoc = querySnapshot.docs.find(
+          (doc) => !skipItemIds.includes(doc.id)
+        );
         if (availableDoc) {
           // Set up real-time listener
           const unsubscribe = onSnapshot(availableDoc.ref, (snapshot) => {
@@ -72,7 +75,7 @@ const ItemDetails = ({ title, app, user }) => {
                 );
                 setTimeout(() => {
                   setNotification(null);
-                  fetchNextAvailableItem(); // Fetch next item
+                  fetchNextAvailableItem(skipItemIds); // Fetch next item
                 }, 3000);
                 return;
               }
@@ -110,7 +113,7 @@ const ItemDetails = ({ title, app, user }) => {
   };
 
   useEffect(() => {
-    fetchNextAvailableItem();
+    fetchNextAvailableItem(passedItems);
 
     return () => {
       if (unsubscribeSnapshot) {
@@ -127,7 +130,7 @@ const ItemDetails = ({ title, app, user }) => {
         setTimeLeft((prev) => {
           const newTime = prev - 1;
           // Update other users every 5 seconds
-          if (newTime % 5 === 0 && currentDocRef) {
+          if (newTime % 4 === 0 && currentDocRef) {
             updateDoc(currentDocRef, {
               time_left: newTime,
             });
@@ -173,11 +176,11 @@ const ItemDetails = ({ title, app, user }) => {
         current_bid: newBid,
         current_bidder: user.uid,
         bidder_email: user.email,
-        time_left: 30,
+        time_left: 20,
         last_bid_timestamp: new Date().toISOString(),
       });
 
-      setTimeLeft(30);
+      setTimeLeft(20);
       setHasBid(true);
     } catch (err) {
       setError("Failed to place bid: " + err.message);
@@ -185,8 +188,19 @@ const ItemDetails = ({ title, app, user }) => {
   };
 
   const handlePass = () => {
-    // Just mark as passed for this user
-    setHasBid(true);
+    if (!currentDocRef) return;
+
+    // Add current item to passed items list
+    setPassedItems((prev) => [...prev, currentDocRef.id]);
+
+    // Show notification
+    setNotification("Finding next available item...");
+
+    // Fetch next available item that hasn't been passed
+    fetchNextAvailableItem([...passedItems, currentDocRef.id]);
+
+    // Clear notification after delay
+    setTimeout(() => setNotification(null), 2000);
   };
 
   if (error) {
@@ -225,7 +239,9 @@ const ItemDetails = ({ title, app, user }) => {
           <p style={{ fontSize: "0.7rem" }}>
             Current Bidder: {itemData.bidder_email || " - "}
           </p>
-          <p style={{ fontSize: "0.7rem" }}>Time Left: {timeLeft} seconds</p>
+          <p style={{ fontSize: "0.7rem", color: "red" }}>
+            Time Left: {timeLeft} seconds
+          </p>
 
           <div
             style={{
