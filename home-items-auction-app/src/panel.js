@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import ItemDetails from "./itemDisplay";
+
 const ImageDisplay = ({ imageUrl }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [scale, setScale] = useState(1);
@@ -47,27 +49,7 @@ const ImageDisplay = ({ imageUrl }) => {
   );
 };
 
-const ResizableBox = ({ imageUrl, title }) => {
-  const [dimensions, setDimensions] = useState({ width: 250, height: 250 });
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      setDimensions({
-        width: e.clientX - e.target.offsetLeft,
-        height: e.clientY - e.target.offsetTop,
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
+const ResizableBox = ({ imageUrl, title, app }) => {
   return (
     <div
       style={{
@@ -79,24 +61,31 @@ const ResizableBox = ({ imageUrl, title }) => {
         padding: "5px",
         borderRadius: "3px",
         flex: 1,
+        height: "100%",
       }}
     >
       <div
         style={{
-          width: dimensions.width,
-          height: dimensions.height,
+          width: "300px",
+          height: "300px",
           border: "1px solid #ccc",
           margin: "2px",
           position: "relative",
-          overflow: "hidden",
+          overflow: "auto",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
         }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
       >
+        <p
+          style={{
+            margin: "5px 0",
+            fontWeight: "bold",
+            fontSize: "1.1em",
+          }}
+        >
+          {title.charAt(0).toUpperCase() + title.slice(1)}
+        </p>
         <div
           style={{
             width: "40%",
@@ -116,21 +105,18 @@ const ResizableBox = ({ imageUrl, title }) => {
             textAlign: "left",
           }}
         >
-          <p style={{ fontWeight: "bold", textAlign: "center" }}>{title}</p>
-          <p>Current Bid: $0</p>
-          <p>Time Left: 2h 30m</p>
-          <p>Description: Sample item description goes here...</p>
+          <ItemDetails title={title} app={app} />
+          {/* {title === "bedframes" ? (
+            <ItemDetails title={title} app={app} />
+          ) : (
+            <>
+              <p style={{ fontWeight: "bold", textAlign: "center" }}>{title}</p>
+              <p>Current Bid: $0</p>
+              <p>Time Left: 2h 30m</p>
+              <p>Description: Sample item description goes here...</p>
+            </>
+          )} */}
         </div>
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: "15px",
-            height: "15px",
-            cursor: "se-resize",
-          }}
-        />
       </div>
     </div>
   );
@@ -153,7 +139,7 @@ const loadImages = () => {
   return images;
 };
 
-const Panel = () => {
+const Panel = ({ app }) => {
   const images = loadImages();
   const imageUrls = Object.values(images);
 
@@ -179,9 +165,16 @@ const Panel = () => {
           minHeight: "45%",
         }}
       >
-        <ResizableBox imageUrl={imageUrls[0]} title={Object.keys(images)[0]} />
-        <ResizableBox imageUrl={imageUrls[1]} title={Object.keys(images)[1]} />
-        <ResizableBox imageUrl={imageUrls[2]} title={Object.keys(images)[2]} />
+        <ResizableBox
+          imageUrl={imageUrls[0]}
+          title={Object.keys(images)[0]}
+          app={app}
+        />
+        <ResizableBox
+          imageUrl={imageUrls[1]}
+          title={Object.keys(images)[1]}
+          app={app}
+        />
       </div>
       <div
         style={{
@@ -193,9 +186,16 @@ const Panel = () => {
           minHeight: "45%",
         }}
       >
-        <ResizableBox imageUrl={imageUrls[3]} title={Object.keys(images)[3]} />
-        <ResizableBox imageUrl={imageUrls[4]} title={Object.keys(images)[4]} />
-        <ResizableBox imageUrl={imageUrls[5]} title={Object.keys(images)[5]} />
+        <ResizableBox
+          imageUrl={imageUrls[2]}
+          title={Object.keys(images)[2]}
+          app={app}
+        />
+        <ResizableBox
+          imageUrl={imageUrls[3]}
+          title={Object.keys(images)[3]}
+          app={app}
+        />
       </div>
     </div>
   );

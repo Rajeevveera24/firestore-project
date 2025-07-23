@@ -9,10 +9,12 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState(null);
+  const [app, setApp] = useState(null);
 
   useEffect(() => {
-    initializeFirebase().then(({ auth, functions }) => {
+    initializeFirebase().then(({ auth, app }) => {
       setAuth(auth);
+      setApp(app);
       auth.onAuthStateChanged((user) => {
         setUser(user);
         setLoading(false);
