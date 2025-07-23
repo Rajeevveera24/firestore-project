@@ -48,38 +48,29 @@ exports.saveUserInfo = onCall({ cors: true }, async (request) => {
 
     console.log("Received user data:", request.data);
 
-    // Check if user with same email and name already exists
-    const existingUsers = await db
-      .collection("users")
-      .where("email", "==", userProfile.email)
-      .where("name", "==", userProfile.name)
-      .get();
+    // Check if document already exists for this user
+    const userDoc = await db.collection("users").doc(request.auth.uid).get();
 
-    if (!existingUsers.empty) {
+    if (userDoc.exists) {
       return {
         success: true,
-        message: "User with this email and name combination already exists",
+        message: "User already exists",
         exists: true,
       };
     }
 
-    // For new users, add createdAt timestamp and required fields
+    // For new users, add createdAt timestamp
     userProfile.createdAt = admin.firestore.Timestamp.now();
 
-    // Save to Firestore with auto-generated ID
-    const docRef = await db.collection("users").add({
-      name: userProfile.name,
-      email: userProfile.email,
-      age: userProfile.age,
-      createdAt: userProfile.createdAt,
-    });
+    // Save to Firestore using auth uid as document ID
+    await db.collection("users").doc(request.auth.uid).set(userProfile);
 
     logger.info(`User ${userProfile.name} info saved successfully`);
 
     return {
       success: true,
       message: "User information saved successfully",
-      userId: docRef.id,
+      userId: request.auth.uid,
     };
   } catch (error) {
     logger.error("Error saving user information:", error);
