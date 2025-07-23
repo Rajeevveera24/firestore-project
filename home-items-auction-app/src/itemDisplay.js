@@ -77,14 +77,15 @@ const ItemDetails = ({ title, app, user }) => {
                 return;
               }
 
-              // Check if outbid
-              if (
-                itemData.current_bidder === user.uid &&
-                data.current_bidder !== user.uid
-              ) {
-                setNotification("Another user has placed a new bid!");
-                setHasBid(false);
-                setTimeout(() => setNotification(null), 5000);
+              // Check if current bidder changed
+              if (data.current_bidder !== itemData.current_bidder) {
+                setHasBid(false); // Re-enable bidding when current bidder changes
+
+                // Show outbid notification if user was previous bidder
+                if (itemData.current_bidder === user.uid) {
+                  setNotification("Another user has placed a new bid!");
+                  setTimeout(() => setNotification(null), 5000);
+                }
               }
 
               setItemData(data);
@@ -226,50 +227,63 @@ const ItemDetails = ({ title, app, user }) => {
           </p>
           <p style={{ fontSize: "0.7rem" }}>Time Left: {timeLeft} seconds</p>
 
-          {!hasBid && itemData.is_bidding_open && (
-            <div
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              justifyContent: "center",
+              marginTop: "10px",
+            }}
+          >
+            <button
+              onClick={handleBid}
+              disabled={hasBid || !itemData.is_bidding_open}
               style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "center",
-                marginTop: "10px",
+                padding: "5px 10px",
+                backgroundColor:
+                  hasBid || !itemData.is_bidding_open ? "#ccc" : "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor:
+                  hasBid || !itemData.is_bidding_open
+                    ? "not-allowed"
+                    : "pointer",
+                fontSize: "0.7rem",
               }}
             >
-              <button
-                onClick={handleBid}
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor: "#4CAF50",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "3px",
-                  cursor: "pointer",
-                  fontSize: "0.7rem",
-                }}
-              >
-                Bid (+$25)
-              </button>
-              <button
-                onClick={handlePass}
-                disabled={itemData.current_bidder === user.uid}
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor:
-                    itemData.current_bidder === user.uid ? "#ccc" : "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "3px",
-                  cursor:
-                    itemData.current_bidder === user.uid
-                      ? "not-allowed"
-                      : "pointer",
-                  fontSize: "0.7rem",
-                }}
-              >
-                Pass
-              </button>
-            </div>
-          )}
+              Bid (+$25)
+            </button>
+            <button
+              onClick={handlePass}
+              disabled={
+                hasBid ||
+                !itemData.is_bidding_open ||
+                itemData.current_bidder === user.uid
+              }
+              style={{
+                padding: "5px 10px",
+                backgroundColor:
+                  hasBid ||
+                  !itemData.is_bidding_open ||
+                  itemData.current_bidder === user.uid
+                    ? "#ccc"
+                    : "#f44336",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor:
+                  hasBid ||
+                  !itemData.is_bidding_open ||
+                  itemData.current_bidder === user.uid
+                    ? "not-allowed"
+                    : "pointer",
+                fontSize: "0.7rem",
+              }}
+            >
+              Pass
+            </button>
+          </div>
         </div>
       ) : (
         <div>
