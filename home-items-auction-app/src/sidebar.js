@@ -9,7 +9,7 @@ const Sidebar = ({
   showSignOut,
 }) => {
   const menuItems = [
-    { id: "home", label: "Home", icon: "🏠" },
+    { id: "auction", label: "Auction", icon: "🏠" },
     { id: "cart", label: "Cart", icon: "🛒" },
     { id: "browse", label: "Browse", icon: "🔍" },
   ];

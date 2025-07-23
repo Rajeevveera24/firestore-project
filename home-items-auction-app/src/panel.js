@@ -58,7 +58,7 @@ const ResizableBox = ({ imageUrl, title, app, user }) => {
         alignItems: "center",
         justifyContent: "center",
         border: "1px solid #333",
-        padding: "5px",
+        padding: "3px",
         borderRadius: "3px",
         flex: 1,
         height: "100%",
@@ -66,10 +66,10 @@ const ResizableBox = ({ imageUrl, title, app, user }) => {
     >
       <div
         style={{
-          width: "300px",
+          width: "250px",
           height: "300px",
           border: "1px solid #ccc",
-          margin: "2px",
+          margin: "1px",
           position: "relative",
           overflow: "auto",
           display: "flex",
@@ -151,8 +151,8 @@ const Panel = ({ app, user }) => {
         alignItems: "stretch",
         width: "100%",
         height: "100%",
-        gap: "10px",
-        padding: "10px",
+        gap: "5px",
+        padding: "5px",
       }}
     >
       <div
@@ -160,9 +160,9 @@ const Panel = ({ app, user }) => {
           display: "flex",
           justifyContent: "space-between",
           width: "100%",
-          gap: "10px",
+          gap: "5px",
           flex: 1,
-          minHeight: "45%",
+          minHeight: "90%",
         }}
       >
         <ResizableBox
@@ -177,17 +177,6 @@ const Panel = ({ app, user }) => {
           app={app}
           user={user}
         />
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          width: "100%",
-          gap: "10px",
-          flex: 1,
-          minHeight: "45%",
-        }}
-      >
         <ResizableBox
           imageUrl={imageUrls[2]}
           title={Object.keys(images)[2]}

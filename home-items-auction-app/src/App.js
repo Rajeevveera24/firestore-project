@@ -7,13 +7,16 @@ import { initializeFirebase } from "./firebase";
 import Panel from "./panel";
 import Sidebar from "./sidebar";
 
+import BudgetDisplay from "./bugdet_display";
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState(null);
   const [app, setApp] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("home");
+  const [currentPage, setCurrentPage] = useState("Auction");
+  const [budget, setBudget] = useState(7000);
 
   useEffect(() => {
     initializeFirebase().then(({ auth, app }) => {
@@ -25,6 +28,10 @@ function App() {
       });
     });
   }, []);
+
+  const handleBudgetUpdate = (newBudget) => {
+    setBudget(newBudget);
+  };
 
   const handleSignIn = async () => {
     if (!auth) return;
@@ -133,16 +140,24 @@ function App() {
           maxWidth: "none",
           minWidth: "0",
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          // border: "2px solid #000",
           overflow: "hidden",
           position: "relative",
           transition: "all 0.3s ease-in-out", // Smooth transition
         }}
       >
         {user ? (
-          <Panel app={app} user={user} />
+          <>
+            <Panel
+              app={app}
+              user={user}
+              // budget={budget}
+              // onBudgetUpdate={handleBudgetUpdate}
+            />
+            <BudgetDisplay app={app} user={user} />
+          </>
         ) : (
           <div
             style={{

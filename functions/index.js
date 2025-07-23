@@ -43,6 +43,7 @@ exports.saveUserInfo = onCall({ cors: true }, async (request) => {
       email: request.data.email,
       name: request.data.name || "New User",
       age: request.data.age || 18,
+      budget: request.data.budget || 7000,
       lastLogin: admin.firestore.Timestamp.now(),
     };
 
