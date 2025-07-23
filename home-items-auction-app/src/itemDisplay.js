@@ -184,7 +184,7 @@ const ItemDetails = ({ title, app, user }) => {
       await updateDoc(currentDocRef, {
         current_bid: newBid,
         current_bidder: user.uid,
-        bidder_email: user.email,
+        current_bidder_email: user.email,
         time_left: 20,
         last_bid_timestamp: new Date().toISOString(),
       });
@@ -246,7 +246,7 @@ const ItemDetails = ({ title, app, user }) => {
             Current Bid: ${itemData.current_bid || " - "}
           </p>
           <p style={{ fontSize: "0.7rem" }}>
-            Current Bidder: {itemData.bidder_email || " - "}
+            Current Bidder: {itemData.current_bidder_email || " - "}
           </p>
           <p style={{ fontSize: "0.7rem", color: "red" }}>
             Time Left: {timeLeft} seconds

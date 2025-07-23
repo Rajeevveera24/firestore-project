@@ -3,8 +3,9 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useEffect, useState } from "react";
 import "./App.css";
+import Browse from "./browser"; // Import new Browse component
 import BudgetDisplay from "./bugdet_display";
-import Cart from "./cart"; // You'll need to create this component
+import Cart from "./cart";
 import { initializeFirebase } from "./firebase";
 import Panel from "./panel";
 import Sidebar from "./sidebar";
@@ -15,7 +16,7 @@ function App() {
   const [auth, setAuth] = useState(null);
   const [app, setApp] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState("welcome"); // Changed default to welcome
+  const [currentPage, setCurrentPage] = useState("welcome");
   const [budget, setBudget] = useState(7000);
   const [joinedAuction, setJoinedAuction] = useState(false);
 
@@ -38,17 +39,12 @@ function App() {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     try {
-      // First sign in with popup
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // After successful sign in, the user is authenticated
-      // Now when we call the Cloud Function, Firebase automatically
-      // adds the auth context with the user's credentials
       const functions = getFunctions();
       const saveUserInfo = httpsCallable(functions, "saveUserInfo");
 
-      // Call the function with the user data
       console.log("User data:", {
         email: user.email,
         displayName: user.displayName,
@@ -61,7 +57,7 @@ function App() {
       await saveUserInfo({
         email: user.email,
         name: user.displayName,
-        age: 18, // Default age value, you may want to collect this from the user
+        age: 18,
       });
     } catch (error) {
       console.error("Error signing in:", error);
@@ -142,8 +138,8 @@ function App() {
 
       <div
         style={{
-          width: isSidebarOpen ? "calc(85vw - 250px)" : "85vw", // Adjust width based on sidebar
-          marginLeft: isSidebarOpen ? "250px" : "0", // Add margin when sidebar is open
+          width: isSidebarOpen ? "calc(85vw - 250px)" : "85vw",
+          marginLeft: isSidebarOpen ? "250px" : "0",
           height: "85vh",
           maxWidth: "none",
           minWidth: "0",
@@ -153,7 +149,7 @@ function App() {
           alignItems: "center",
           overflow: "hidden",
           position: "relative",
-          transition: "all 0.3s ease-in-out", // Smooth transition
+          transition: "all 0.3s ease-in-out",
         }}
       >
         {user ? (
@@ -196,7 +192,7 @@ function App() {
                 ) : currentPage === "cart" ? (
                   <Cart app={app} user={user} />
                 ) : currentPage === "browse" ? (
-                  <Cart app={app} user={user} />
+                  <Browse app={app} user={user} />
                 ) : null}
                 <BudgetDisplay app={app} user={user} />
               </>
