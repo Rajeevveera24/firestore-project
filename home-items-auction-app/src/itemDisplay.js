@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   getFirestore,
   onSnapshot,
@@ -22,6 +21,7 @@ const ItemDetails = ({ title, app, user }) => {
   const [userRef, setUserRef] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
   const [unsubscribeSnapshot, setUnsubscribeSnapshot] = useState(null);
+  const [unsubscribeUserSnapshot, setUnsubscribeUserSnapshot] = useState(null);
   const [passedItems, setPassedItems] = useState([]);
 
   useEffect(() => {
@@ -30,11 +30,20 @@ const ItemDetails = ({ title, app, user }) => {
       const ref = doc(db, "users", user.uid);
       setUserRef(ref);
 
-      getDoc(ref).then((docSnap) => {
+      // Set up real-time listener for user document
+      const unsubscribe = onSnapshot(ref, (docSnap) => {
         if (docSnap.exists()) {
           setUserDoc(docSnap);
         }
       });
+
+      setUnsubscribeUserSnapshot(() => unsubscribe);
+
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
     }
   }, [app, user]);
 

@@ -17,7 +17,7 @@ const BudgetDisplay = ({ app, user }) => {
       }
     });
 
-    return () => unsubscribe();
+    // Don't unsubscribe on cleanup
   }, [app, user]);
 
   return (
