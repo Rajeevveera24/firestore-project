@@ -30,7 +30,7 @@ const BudgetDisplay = ({ app, user }) => {
         textAlign: "center",
       }}
     >
-      <h3 style={{ margin: 0, color: "#2c3e50" }}>Current Budget</h3>
+      <h3 style={{ margin: 0, color: "#2c3e50" }}>Current Wallet</h3>
       <div
         style={{
           fontSize: "24px",
